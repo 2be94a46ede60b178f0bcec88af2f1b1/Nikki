@@ -1,1 +1,11 @@
-.venv/
+# secrets
+密钥.txt
+**/密钥.txt
+
+# local backups
+nikki.yaml.bak.*
+*.bak.*
+
+# local working copies (avoid accidental commit)
+nikki.yaml
+
