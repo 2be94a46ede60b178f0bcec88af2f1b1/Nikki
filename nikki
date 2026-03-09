@@ -49,14 +49,6 @@ proxy-groups:
     include-all: true
     filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
 
-  # 3. 特定策略组，确保大陆域名/ IP 直连
-  - name: 🇨🇳 中国大陆直连
-    type: select
-    proxies:
-      - DIRECT # 强制所有中国大陆流量直连
-    include-all: true
-    filter: "GEOIP,CN"  # 确保所有中国大陆的 IP 走直连
-
 
   # 3. 业务策略组 (带精准图标)
   - name: 📹 YouTube
@@ -117,15 +109,6 @@ proxy-groups:
     # 正则逻辑：确保池子里只有美国出口，实现多出口并行
     filter: "🇺🇸|美西|盐湖城|DMIT|RN|VMISS"
 
-
-  - name: Ⓜ️tmdb专用
-    type: select
-    proxies:
-      - ♻️ 自动选择
-      - DIRECT
-    include-all: true
-    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
-
   # 4. 漏网之鱼 (图标: 🐟)
   - name: 🐟 漏网之鱼
     type: select
@@ -140,8 +123,6 @@ proxy-groups:
     type: select
     proxies:
       - DIRECT
-    include-all: true
-    filter: "GEOIP,CN,DIRECT"  # 通过 GEOIP 判断大陆IP并直连
 
 
 
@@ -332,6 +313,19 @@ dns:
 # --- 分流规则 ---
 
 rules:
+  # --- 规则集（rule-providers）需要在 rules 中引用才会生效 ---
+  - RULE-SET,LAN,DIRECT
+  - RULE-SET,Reject,REJECT
+  - RULE-SET,Hijacking,REJECT
+  - RULE-SET,Privacy,REJECT
+  - RULE-SET,YouTube,📹 YouTube
+  - RULE-SET,Netflix,🎥 NETFLIX
+  - RULE-SET,Telegram,📲 Telegram
+  - RULE-SET,Google,🍀 Google
+  - RULE-SET,GitHub,👨🏿‍💻 GitHub
+  - RULE-SET,OpenAI,🤖 ChatGPT
+  - RULE-SET,ChinaMax,DIRECT
+
   - DOMAIN,cloudflare-dns.com,🚀 默认代理
   - DOMAIN,dns.google,🚀 默认代理
 
@@ -349,13 +343,6 @@ rules:
   - GEOIP,CN,DIRECT
 
   # 3️⃣ 中国大陆域名集合强制直连（比 .cn 覆盖更完整）
-  - GEOSITE,CN,DIRECT
-  - DOMAIN-SUFFIX,cn,直连 # 直连.cn后缀的域名
-  - DOMAIN-SUFFIX,gov.cn,直连 # 直连政府域名
-  - DOMAIN-KEYWORD,baidu,直连 # 直连百度相关域名
-  - DOMAIN-KEYWORD,tencent,直连 # 直连腾讯相关域名
-  - DOMAIN-KEYWORD,alibaba,直连 # 直连阿里巴巴相关域名
-  - DOMAIN-KEYWORD,zhihu,直连 # 直连知乎相关域名
   - DOMAIN,fhnfile.oss-cn-shenzhen.aliyuncs.com,直连
   - DOMAIN-SUFFIX,115.com,直连
   - DOMAIN-SUFFIX,115cdn.com,直连
@@ -366,10 +353,6 @@ rules:
   - DOMAIN-SUFFIX,116cd.net,直连
   - DOMAIN-SUFFIX,anxia.com,直连
   - DOMAIN-SUFFIX,sq.cc,直连
-  - DOMAIN-SUFFIX,themoviedb.org,🇺🇸 美国专用
-  - DOMAIN-SUFFIX,api.themoviedb.org,🇺🇸 美国专用
-  - DOMAIN-SUFFIX,www.themoviedb.org,🇺🇸 美国专用
-  - DOMAIN-SUFFIX,tmdb.org,🇺🇸 美国专用
   - DOMAIN-SUFFIX,thetvdb.com,🇺🇸 美国专用
   - DOMAIN-SUFFIX,api.thetvdb.com,🇺🇸 美国专用
   - DOMAIN-SUFFIX,fanart.tv,🇺🇸 美国专用
