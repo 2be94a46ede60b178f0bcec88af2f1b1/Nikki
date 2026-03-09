@@ -1,0 +1,394 @@
+# ==========================================================
+# Nikki 最终完美版 (已更新 RFC日本2 节点)
+# ==========================================================
+
+# --- 1. 基础全局设置 ---
+port: 7890
+socks-port: 7891
+mixed-port: 7893
+allow-lan: true
+bind-address: "*"
+ipv6: false
+log-level: warning
+unified-delay: true
+tcp-concurrent: true
+find-process-mode: 'off'
+keep-alive-interval: 15
+
+profile:
+  store-selected: true
+  store-fake-ip: true
+
+proxy-providers:
+  Airport1:  # <--- 已修复：名称修改为 Airport1 以匹配下方的引用
+    type: http
+    # ==> 订阅链接 <==
+    url: "http://192.168.100.80:3008/fKA6xwFUzpCc3RhahafE/download/%E8%87%AA%E5%BB%BA%E6%B5%8B%E8%AF%95"
+    # 更新间隔（天）
+    interval: 86400
+    override:
+      skip-cert-verify: false # 通常为 false，除非订阅需要
+
+# --- 3. 策略组 ---
+proxy-groups:
+  # 1. 自动测速 (图标: ♻️)
+  - name: ♻️ 自动选择
+    type: url-test
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    include-all: true
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
+
+  # 2. 默认代理 (图标: 🚀)
+  - name: 🚀 默认代理
+    type: select
+    proxies:
+      - ♻️ 自动选择
+      - DIRECT
+    include-all: true
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
+
+  #  业务策略组 (带精准图标)
+  - name: 📹 YouTube
+    type: select
+    proxies:
+      - ♻️ 自动选择
+      - DIRECT
+    include-all: true
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
+
+  - name: 🍀 Google
+    type: select
+    proxies:
+      - ♻️ 自动选择
+      - DIRECT
+    include-all: true
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
+
+  - name: 🤖 OpenAI
+    type: select
+    proxies:
+      - ♻️ 自动选择
+      - DIRECT
+    include-all: true
+    # 自动抓取美国出口和台湾出口节点
+    filter: "美西|盐湖城|DMIT|RN|VMISS|台湾"
+
+  - name: 👨🏿‍💻 GitHub
+    type: select
+    proxies:
+      - ♻️ 自动选择
+      - DIRECT
+    include-all: true
+    filter: "美西|新加坡|日本|DMIT"
+
+  - name: 📲 Telegram
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    include-all: true
+    filter: "新加坡|海创|HK|自建|SG"
+
+  - name: 🎥 NETFLIX
+    type: select
+    proxies:
+      - ♻️ 自动选择
+      - DIRECT
+    include-all: true
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
+
+  - name: 🇺🇸 美国专用
+    type: load-balance          # 核心修改：改为负载均衡模式
+    strategy: round-robin       # 调度策略：轮询（一个流量换一个出口）
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    include-all: true
+    # 正则逻辑：确保池子里只有美国出口，实现多出口并行
+    filter: "🇺🇸|美西|盐湖城|DMIT|RN|VMISS"
+
+
+  - name: Ⓜ️tmdb专用
+    type: select
+    proxies:
+      - ♻️ 自动选择
+      - DIRECT
+    include-all: true
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
+
+  # 4. 漏网之鱼 (图标: 🐟)
+  - name: 🐟 漏网之鱼
+    type: select
+    proxies:
+      - 🚀 默认代理
+      - ♻️ 自动选择
+      - DIRECT
+    include-all: true
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
+
+
+
+
+# --- 4. 规则集定义 ---
+rule-providers:
+  Reject:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Advertising/Advertising.yaml"
+    path: ./ruleset/Reject.yaml
+    interval: 86400
+
+  Privacy:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Privacy/Privacy.yaml"
+    path: ./ruleset/Privacy.yaml
+    interval: 86400
+
+  Hijacking:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Hijacking/Hijacking.yaml"
+    path: ./ruleset/Hijacking.yaml
+    interval: 86400
+
+  YouTube:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/YouTube/YouTube.yaml"
+    path: ./ruleset/YouTube.yaml
+    interval: 86400
+
+  Netflix:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Netflix/Netflix.yaml"
+    path: ./ruleset/Netflix.yaml
+    interval: 86400
+
+  Telegram:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Telegram/Telegram.yaml"
+    path: ./ruleset/Telegram.yaml
+    interval: 86400
+
+  Google:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Google/Google.yaml"
+    path: ./ruleset/Google.yaml
+    interval: 86400
+
+  GitHub:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/GitHub/GitHub.yaml"
+    path: ./ruleset/GitHub.yaml
+    interval: 86400
+
+  OpenAI:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/OpenAI/OpenAI.yaml"
+    path: ./ruleset/OpenAI.yaml
+    interval: 86400
+
+
+  ChinaMax:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/ChinaMax/ChinaMax.yaml"
+    path: ./ruleset/ChinaMax.yaml
+    interval: 86400
+
+  LAN:
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Lan/Lan.yaml"
+    path: ./ruleset/Lan.yaml
+    interval: 86400
+
+  ZHILIAN:  # 中文名称：直连（自维护白名单）
+    type: http
+    behavior: classical
+    url: "https://raw.githubusercontent.com/2be94a46ede60b178f0bcec88af2f1b1/yaml-1/main/zhilian.yaml"
+    path: ./ruleset/zhilian.yaml
+    interval: 86400
+
+# --- 5. 高级功能模块 ---
+sniffer:
+  enable: true
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+    QUIC:
+      ports: [443, 8443]
+
+tun:
+  enable: true
+  stack: system
+  dns-hijack: ["any:53"]
+  auto-route: true
+  auto-detect-interface: true
+
+# --- 6. DNS 优化 ---
+dns:
+  enable: true
+  cache-algorithm: arc
+  listen: 127.0.0.1:1053
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter-mode: blacklist
+  prefer-h3: false
+  ipv6: true
+  respect-rules: true
+  use-hosts: false
+  use-system-hosts: false
+
+  fake-ip-filter:
+    - "+.lan"
+    - "+.local"
+    - "+.arpa"
+    - "localhost.ptlogin2.qq.com"
+    - "localhost.work.weixin.qq.com"
+    - "+.msftncsi.com"
+    - "+.msftconnecttest.com"
+    - "time.*.com"
+    - "ntp.*.com"
+    - "geosite:connectivity-check"
+    - "geosite:private"
+    - "geosite:cn"
+    - "+.stun.*.*"
+    - "+.stun.*.*.*"
+    - "+.stun.*.*.*.*"
+    - "+.stun.*.*.*.*.*"
+    - "*.n.n.srv.nintendo.net"
+    - "+.stun.playstation.net"
+    - "*.*.xboxlive.com"
+    - "+.teracloud.jp"
+    - "+.t.me"
+    - "+.telegram.org"
+    - "+.telegram.me"
+    - "+.tdesktop.com"
+    - "+.telegra.ph"
+    - "+.telesco.pe"
+    - "+.telegram-cdn.org"
+    - "+.cdn-telegram.org"
+    - "+.telegramdownload.com"
+    - "+.telegram.dog"
+    - "+.graph.org"
+    - "+.legra.ph"
+    - "+.tx.me"
+    - "+.tg.dev"
+    - "WORKGROUP"
+
+  # 用于解析“DNS 上游域名本身”
+  # 官方要求：default-nameserver 必须是 IP（可以是加密 DNS 但仍要求 IP 形式）
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+
+  # 默认 DNS（没命中 policy 的域名会走这里）
+  # 你已经用 IP 直连 DoH 了（比 dns.alidns.com 这种域名更省一次解析）
+  nameserver:
+    - https://1.12.12.12/dns-query
+    - https://223.5.5.5/dns-query
+
+  # 仅用于“解析代理节点 server 的域名”
+  # respect-rules: true 时，官方明确说需要配这个，避免“鸡生蛋”
+  proxy-server-nameserver:
+    - https://1.12.12.12/dns-query
+    - https://223.5.5.5/dns-query
+
+  # 用 nameserver-policy 做分流（替代你原来的 fallback/fallback-filter 思路）
+  nameserver-policy:
+    # 私有/局域网域名：不要走公共 DoH，优先走“你局域网/系统的 DNS”
+    "geosite:private":
+      - system
+
+    # 国内域名：国内 DNS
+    "geosite:cn":
+      - https://1.12.12.12/dns-query
+      - https://223.5.5.5/dns-query
+
+    # 非 CN：海外 DoT（通常会按路由规则走代理）
+    "geosite:geolocation-!cn":
+      - tls://dns.google
+      - tls://cloudflare-dns.com
+
+# --- 分流规则 ---
+
+rules:
+  # ==============================
+  # 0) DNS 上游固定走代理（避免 DoT/DoH 连接落入兜底）
+  # ==============================
+  - DOMAIN,cloudflare-dns.com,🚀 默认代理
+  - DOMAIN,dns.google,🚀 默认代理
+  - DOMAIN,dns.google.com,🚀 默认代理
+  - DOMAIN,dns.cloudflare.com,🚀 默认代理
+  - DOMAIN-SUFFIX,docker.fnnas.com,🚀 默认代理
+  - DOMAIN-SUFFIX,docker-cache1.fnnas.com,🚀 默认代理
+
+  # ==============================
+  # 1) 🇨🇳 大陆安全隔离区（必须放最前）
+  # ==============================
+  # - GEOIP,PRIVATE,DIRECT
+  # - GEOIP,CN,DIRECT
+  # - GEOSITE,CN,DIRECT 
+
+  # ==============================
+  # 2) 业务规则集（RULE-SET）
+  # ==============================
+  - RULE-SET,YouTube,📹 YouTube
+  - RULE-SET,Netflix,🎥 NETFLIX
+  - RULE-SET,Telegram,📲 Telegram
+  - RULE-SET,Google,🍀 Google
+  - RULE-SET,GitHub,👨🏿‍💻 GitHub
+  - RULE-SET,OpenAI,🤖 OpenAI
+
+  # ==============================
+  # 3) 通用直连集合（放在业务后，避免抢流量）
+  # ==============================
+  - RULE-SET,LAN,DIRECT
+  - RULE-SET,ZHILIAN,DIRECT
+
+  # ==============================
+  # 4) 你手写的补充规则（可留可删，但要放在后面）
+  # ==============================
+
+  - DOMAIN-SUFFIX,themoviedb.org,🇺🇸 美国专用
+  - DOMAIN-SUFFIX,api.themoviedb.org,🇺🇸 美国专用
+  - DOMAIN-SUFFIX,www.themoviedb.org,🇺🇸 美国专用
+  - DOMAIN-SUFFIX,tmdb.org,🇺🇸 美国专用
+  - DOMAIN-SUFFIX,thetvdb.com,🇺🇸 美国专用
+  - DOMAIN-SUFFIX,api.thetvdb.com,🇺🇸 美国专用
+  - DOMAIN-SUFFIX,fanart.tv,🇺🇸 美国专用
+
+
+  # Telegram 你手写的域名/IP（如果 RULE-SET,Telegram 已经覆盖，这些其实可选）
+  - DOMAIN-SUFFIX,mobilefuse.com,📲 Telegram
+  - DOMAIN-SUFFIX,inmobi.com,📲 Telegram
+  - DOMAIN-SUFFIX,crashlytics.com,📲 Telegram
+  - DOMAIN-SUFFIX,talkatone.com,📲 Telegram
+  - DOMAIN-SUFFIX,kochava.com,📲 Telegram
+  - DOMAIN-SUFFIX,cohere.com,📲 Telegram
+  - DOMAIN-SUFFIX,ip-api.com,📲 Telegram
+  - DOMAIN-SUFFIX,agkn.com,📲 Telegram
+  - DOMAIN-SUFFIX,tktn.at,📲 Telegram
+  - DOMAIN-SUFFIX,api.telegram.org,📲 Telegram
+  - DOMAIN-SUFFIX,core.telegram.org,📲 Telegram
+  - IP-CIDR,50.117.27.0/24,📲 Telegram,no-resolve
+  - IP-CIDR,69.46.75.0/24,📲 Telegram,no-resolve
+  - IP-CIDR,205.164.56.0/24,📲 Telegram,no-resolve
+  - IP-CIDR,63.251.124.0/24,📲 Telegram,no-resolve
+  - IP-CIDR,91.108.56.0/24,📲 Telegram,no-resolve
+
+  # ==============================
+  # 5) 兜底
+  # ==============================
+  - MATCH,🐟 漏网之鱼
