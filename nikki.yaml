@@ -321,38 +321,37 @@ rules:
   - DOMAIN-SUFFIX,docker-cache1.fnnas.com,🚀 默认代理
 
   # ==============================
-  # 1) 🇨🇳 大陆安全隔离区（必须放最前）
+  # 1) 🇨🇳 大陆安全隔离区（已启用）
   # ==============================
-  # - GEOIP,PRIVATE,DIRECT
-  # - GEOIP,CN,DIRECT
-  # - GEOSITE,CN,DIRECT 
+  - GEOIP,PRIVATE,DIRECT
+  - GEOIP,CN,DIRECT
+  - GEOSITE,CN,DIRECT
 
   # ==============================
-  # 2) 业务规则集（RULE-SET）
+  # 2) 业务规则集（RULE-SET，先具体后泛）
   # ==============================
   - RULE-SET,YouTube,📹 YouTube
   - RULE-SET,Netflix,🎥 NETFLIX
   - RULE-SET,Telegram,📲 Telegram
   - RULE-SET,TMDB,🎬 tmdb刮削
-  - RULE-SET,Google,🍀 Google
-  - RULE-SET,GitHub,👨🏿‍💻 GitHub
   - RULE-SET,OpenAI,🤖 OpenAI
+  - RULE-SET,GitHub,👨🏿‍💻 GitHub
+  - RULE-SET,Google,🍀 Google
 
+  # ==============================
+  # 3) 直连规则集
+  # ==============================
   - RULE-SET,BiliBili,DIRECT
   - RULE-SET,Apple,DIRECT
   - RULE-SET,115,DIRECT
   - RULE-SET,WeChat,DIRECT
-  # ==============================
-  # 3) 通用直连集合（放在业务后，避免抢流量）
-  # ==============================
   - RULE-SET,LAN,DIRECT
 
   # ==============================
-  # 4) 你手写的补充规则（可留可删，但要放在后面）
+  # 4) 你手写的补充规则（放在兜底前）
   # Apple：整站直连（补齐 www.apple.com 等未覆盖项）
-  - DOMAIN-SUFFIX,apple.com,DIRECT
-
   # ==============================
+  - DOMAIN-SUFFIX,apple.com,DIRECT
 
   # ==============================
   # 5) 兜底
