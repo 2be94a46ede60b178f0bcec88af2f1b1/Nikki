@@ -1,5 +1,4 @@
-# ==========================================================
-# Nikki 最终完美版 (已更新 RFC日本2 节点)
+# Nikki 最终完美版 
 # ==========================================================
 
 # --- 1. 基础全局设置 ---
@@ -23,9 +22,9 @@ proxy-providers:
   Airport1:  # <--- 已修复：名称修改为 Airport1 以匹配下方的引用
     type: http
     # ==> 订阅链接 <==
-    url: "XXXXXXXXXXXXXX"
+    url: "XXXXXXX"
     # 更新间隔（天）
-    interval: 86400
+    interval: 600
     override:
       skip-cert-verify: false # 通常为 false，除非订阅需要
 
@@ -37,7 +36,7 @@ proxy-groups:
     interval: 300
     tolerance: 50
     include-all: true
-    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|RFC|bage|海创|HK"
 
   # 2. 默认代理 (图标: 🚀)
   - name: 🚀 默认代理
@@ -46,7 +45,7 @@ proxy-groups:
       - ♻️ 自动选择
       - DIRECT
     include-all: true
-    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|RFC|bage|海创|HK"
 
   #  业务策略组 (带精准图标)
   - name: 📹 YouTube
@@ -55,7 +54,7 @@ proxy-groups:
       - ♻️ 自动选择
       - DIRECT
     include-all: true
-    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|bage|RFC|海创|HK"
 
   - name: 🍀 Google
     type: select
@@ -63,7 +62,7 @@ proxy-groups:
       - ♻️ 自动选择
       - DIRECT
     include-all: true
-    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|bage|RFC|海创|HK"
 
   - name: 🤖 OpenAI
     type: select
@@ -72,7 +71,7 @@ proxy-groups:
       - DIRECT
     include-all: true
     # 自动抓取美国出口和台湾出口节点
-    filter: "美西|盐湖城|DMIT|RN|VMISS|台湾"
+    filter: "美西|盐湖城|DMIT|RFC|RN|VMISS|bage|台湾"
 
   - name: 👨🏿‍💻 GitHub
     type: select
@@ -80,7 +79,7 @@ proxy-groups:
       - ♻️ 自动选择
       - DIRECT
     include-all: true
-    filter: "美西|新加坡|日本|DMIT"
+    filter: "🇯🇵"
 
   - name: 📲 Telegram
     type: url-test
@@ -96,23 +95,23 @@ proxy-groups:
       - ♻️ 自动选择
       - DIRECT
     include-all: true
-    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|盐湖城|海创|HK"
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|RFC|bage|海创|HK"
+      
   - name: 🎬 tmdb刮削
-    type: load-balance          # 核心修改：改为负载均衡模式
-    strategy: round-robin       # 调度策略：轮询（一个流量换一个出口）
-    url: https://www.gstatic.com/generate_204
+    type: url-test          # 核心修改：改为负载均衡模式
+    url: https://api.themoviedb.org/3/configuration
     interval: 300
     include-all: true
     # 正则逻辑：确保池子里只有美国出口，实现多出口并行
-    filter: "🇺🇸|美西|盐湖城|DMIT|RN|VMISS"
-
+    filter: "🇺🇸|美西|盐湖城|DMIT|RN|VMISS|bage"
+      
   - name: 🐟 漏网之鱼
     type: select
     proxies:
-      - 🚀 默认代理
       - ♻️ 自动选择
       - DIRECT
-
+    include-all: true
+    filter: "台湾|美西|新加坡|印度|自建|日本|RN|DMIT|VMISS|RFC|bage|海创|HK"
 
 # --- 4. 规则集定义 ---
 
@@ -231,7 +230,7 @@ dns:
   fake-ip-range: 198.18.0.1/16
   fake-ip-filter-mode: blacklist
   prefer-h3: false
-  ipv6: true
+  ipv6: false
   respect-rules: true
   use-hosts: false
   use-system-hosts: false
@@ -303,9 +302,8 @@ dns:
 
     # 非 CN：海外 DoT（通常会按路由规则走代理）
     "geosite:geolocation-!cn":
-      - tls://dns.google
-      - tls://cloudflare-dns.com
-
+      - https://8.8.8.8/dns-query
+      - https://1.1.1.1/dns-query
 
 # --- 分流规则 ---
 
@@ -326,8 +324,6 @@ rules:
   - GEOIP,PRIVATE,DIRECT
   - GEOIP,CN,DIRECT
   - GEOSITE,CN,DIRECT
-
-  # ==============================
   # 2) 业务规则集（RULE-SET，先具体后泛）
   # ==============================
   - RULE-SET,YouTube,📹 YouTube
@@ -337,8 +333,6 @@ rules:
   - RULE-SET,OpenAI,🤖 OpenAI
   - RULE-SET,GitHub,👨🏿‍💻 GitHub
   - RULE-SET,Google,🍀 Google
-
-  # ==============================
   # 3) 直连规则集
   # ==============================
   - RULE-SET,BiliBili,DIRECT
@@ -346,14 +340,12 @@ rules:
   - RULE-SET,115,DIRECT
   - RULE-SET,WeChat,DIRECT
   - RULE-SET,LAN,DIRECT
-
-  # ==============================
   # 4) 你手写的补充规则（放在兜底前）
   # Apple：整站直连（补齐 www.apple.com 等未覆盖项）
   # ==============================
   - DOMAIN-SUFFIX,apple.com,DIRECT
-
-  # ==============================
+  - DOMAIN-KEYWORD,apple,DIRECT
+  - DOMAIN-KEYWORD,nodeseek.com,🎬 tmdb刮削
   # 5) 兜底
   # ==============================
   - MATCH,🐟 漏网之鱼
